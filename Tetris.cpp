@@ -233,7 +233,7 @@ int one_player(string left_str, string top_str, int play_width, int play_height,
 				//¶¥ÐÐ¼ì²â Game over check
 				bool game_over = false;
 				for (int x = 0; x < play_width; x++) {
-					if (block[x][0]) {
+					if (block[x][0] || block[x][1]) {
 						game_over = true;
 						break;
 					}
