@@ -13,16 +13,19 @@ string refresh_top(int top);
 int get_width(int d_type, int d_dir);
 int get_height(int d_type, int d_dir);
 int get_left(int d_type, int d_dir);
-void one_player(string left_str, string top_str, int play_width, int play_height, int tick);
+int one_player(string left_str, string top_str, int play_width, int play_height, int tick);
 void paint(int d_type, int d_dir, int d_x, int d_y);
+void clearScreen();
 
 int selects = 0;
 string left_str, top_str;
 int play_width = 10, play_height = 20;
 int tick = 50;
+int half_height, half_width_1, half_width_2;
 
 int main() {
 	int left = 10, top = 3;
+	int tmp = 0;
 	system("mode con cols=100 lines=32");
 	//lines=32
 	system("color F");
@@ -45,7 +48,7 @@ int main() {
 	left_str = refresh_left(left);
 	top_str = refresh_top(top);
 	while (true) {
-		system("cls");
+		clearScreen();
 		cout << top_str; 
 		if (selects == 0) {
 			cout << left_str << "┏━━━━┓\n"
@@ -96,7 +99,7 @@ int main() {
 			if (KEY_DOWN(VK_RETURN)) {
 				switch (selects) {
 					case 0:
-					one_player(left_str, top_str, play_width, play_height, tick);
+					tmp = one_player(left_str, top_str, play_width, play_height, tick);
 					break;
 					case 1:
 						//TODO
@@ -109,6 +112,42 @@ int main() {
 					case 3:
 					return 0;
 				}
+			}
+			switch (tmp) {
+				case 1:
+				for (int count = 3; count > 0; count--) {
+					clearScreen();
+					printf("%s%s┏", top_str.c_str(), left_str.c_str());
+					for (int i = 0; i < play_width; i++) printf("━");
+					printf("┓\n");
+					for (int i = 0; i < half_height; i++) {
+						printf("%s┃", left_str.c_str());
+						for (int j = 0; j < play_width; j++) printf("  ");
+						printf("┃\n");
+					}
+					printf("%s┃", left_str.c_str());
+					for (int i = 0; i < half_width_1; i++) printf("  ");
+					printf("   Game over  ");
+					for (int i = 0; i < play_width - half_width_1 - 7; i++) printf("  ");
+					printf("┃\n%s┃", left_str.c_str());
+					for (int i = 0; i < play_width; i++) printf("  ");
+					printf("┃\n%s┃", left_str.c_str());
+					for (int i = 0; i < half_width_2; i++) printf("  ");
+					printf(" %d", count);
+					for (int i = 0; i < play_width - half_width_2 - 1; i++) printf("  ");
+					printf("┃\n");
+					for (int i = 0; i < play_height - half_height - 3; i++) {
+						printf("%s┃", left_str.c_str());
+						for (int j = 0; j < play_width; j++) printf("  ");
+						printf("┃\n");
+					}
+					printf("%s┗", left_str.c_str());
+					for (int i = 0; i < play_width; i++) printf("━");
+					printf("┛\n");
+					Sleep(1000);
+				}
+				tmp = 0;
+				break;
 			}
 		}
 	}
@@ -126,7 +165,7 @@ string refresh_top(int top) {
 		return str;
 }
 
-void one_player(string left_str, string top_str, int play_width, int play_height, int tick) {
+int one_player(string left_str, string top_str, int play_width, int play_height, int tick) {
 	srand((unsigned int)(time(NULL)));
 	bool refresh = false, down = false, hard_down = false, apply = false, paint_back = false;
 	int tmp_dir, tmp_x, tmp_y;
@@ -143,13 +182,13 @@ void one_player(string left_str, string top_str, int play_width, int play_height
 		}
 	}
 	
-	int half_height = (play_height - 3) / 2;
-	int half_width_1 = (play_width - 7) / 2;
-	int half_width_2 = (play_width - 1) / 2; 
+	half_height = (play_height - 3) / 2;
+	half_width_1 = (play_width - 7) / 2;
+	half_width_2 = (play_width - 1) / 2;
 	
 	//Count down
 	/*for (int count = 3; count > 0; count--) {
-		system("cls");
+		clearScreen();
 		printf("%s%s┏", top_str.c_str(), left_str.c_str());
 		for (int i = 0; i < play_width; i++) printf("━");
 		printf("┓\n");
@@ -191,15 +230,27 @@ void one_player(string left_str, string top_str, int play_width, int play_height
 				}
 			}
 			if (last_type != 0) {
+				//顶行检测 Game over check
+				bool game_over = false;
+				for (int x = 0; x < play_width; x++) {
+					if (block[x][0]) {
+						game_over = true;
+						break;
+					}
+				}
+				if (game_over) {
+					return 1;
+				}
+
 				//消除行检测 Clear check
 				//这部分代码可以优化，改为只扫描变动的行，但由于时间不够用扫描全部替代
-				int clear[play_height]; //save clear Y
+				int clear[4]; //储存Clear的行坐标
 				//for (int i = 0; i < play_height; i++)
 				//	clear[i] = 0;
 				int clear_num = 0;
 				for (/*int y = d_y; y <= check_max_y; y++*/int y = 0; y < play_height; y++) {
 					int i;
-					for (i = 0; i < play_width; i++) {
+					for (i = 1; i < play_width; i++) {
 						if (!block[i][y]) break;
 					}
 					if (i == play_width) { //clear
@@ -232,7 +283,7 @@ void one_player(string left_str, string top_str, int play_width, int play_height
 							scr[i][j] = block[i][j];
 						}
 					}
-					system("cls");
+					clearScreen();
 					printf("%s%s┏", top_str.c_str(), left_str.c_str());
 					for (int i = 0; i < play_width; i++) printf("━");
 					printf("┓\n");
@@ -451,7 +502,7 @@ void one_player(string left_str, string top_str, int play_width, int play_height
 		if (paint_back) goto PaintBack;
 
 		//Disable
-		system("cls");
+		clearScreen();
 		printf("%s%s┏", top_str.c_str(), left_str.c_str());
 		for (int i = 0; i < play_width; i++) printf("━");
 			printf("┓\n");
@@ -833,4 +884,30 @@ int get_left(int d_type, int d_dir) {
 		default:
 		if (d_dir == 1) return 1; else return 0;
 	}
+}
+
+//快速清屏 https://blog.csdn.net/icy_ybk/article/details/79285245 
+void clearScreen()
+{
+    HANDLE hStdOut;
+    CONSOLE_SCREEN_BUFFER_INFO bufInfo;
+    SMALL_RECT scroll;
+    COORD newCursorPointer;
+    CHAR_INFO ciFill;
+
+    hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if(!GetConsoleScreenBufferInfo(hStdOut, &bufInfo))
+        return;
+
+    scroll.Left = 0;
+    scroll.Top = 0;
+    scroll.Right = bufInfo.dwSize.X;
+    scroll.Bottom = bufInfo.dwSize.Y;
+    newCursorPointer.X = 0;
+    newCursorPointer.Y = -bufInfo.dwSize.Y;
+    ciFill.Char.UnicodeChar = L' ';
+    ciFill.Attributes = bufInfo.wAttributes;
+    ScrollConsoleScreenBufferW(hStdOut, &scroll, NULL, newCursorPointer, &ciFill);
+    newCursorPointer.Y = 0;
+    SetConsoleCursorPosition(hStdOut, newCursorPointer);
 }
