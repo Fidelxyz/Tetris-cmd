@@ -24,8 +24,11 @@ int tick = 50;
 int main() {
 	int left = 10, top = 3;
 	system("mode con cols=100 lines=32");
+	//lines=32
 	system("color F");
 	system("chcp 936");
+	//UTF-8: 65001
+	//GBK: 936
 
 	//禁用快速编辑模式
 	HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
@@ -34,6 +37,9 @@ int main() {
 	mode &= ~ENABLE_QUICK_EDIT_MODE; //移除快速编辑模式
 	mode &= ~ENABLE_INSERT_MODE; //移除插入模式
 	mode &= ~ENABLE_MOUSE_INPUT;
+	mode &= ~ENABLE_WINDOW_INPUT;
+	mode &= ~ENABLE_PROCESSED_INPUT;
+	mode &= ~ENABLE_LINE_INPUT;
 	SetConsoleMode(hStdin, mode);
 
 	left_str = refresh_left(left);
@@ -128,7 +134,6 @@ void one_player(string left_str, string top_str, int play_width, int play_height
 	int d_type = 0, d_dir = 0, d_x, d_y;
 	bool scr[play_width][play_height];
 	bool block[play_width][play_height];
-	int check_max_y;
 	int last_type = 0;
 	
 	for(int i = 0; i < play_width; i++) {
@@ -187,550 +192,587 @@ void one_player(string left_str, string top_str, int play_width, int play_height
 			}
 			if (last_type != 0) {
 				//消除行检测 Clear check
-				int clear[get_height(last_type, d_dir)]; //save clear Y
-				for (int i = 0; i < get_height(last_type, d_dir); i++) clear[i] = 0;
-					int clear_num = 0;
-				check_max_y = d_y + get_height(last_type, d_dir) - 1;
-				for (int y = d_y; y <= check_max_y; y++) {
+				//这部分代码可以优化，改为只扫描变动的行，但由于时间不够用扫描全部替代
+				int clear[play_height]; //save clear Y
+				//for (int i = 0; i < play_height; i++)
+				//	clear[i] = 0;
+				int clear_num = 0;
+				for (/*int y = d_y; y <= check_max_y; y++*/int y = 0; y < play_height; y++) {
 					int i;
 					for (i = 0; i < play_width; i++) {
 						if (!block[i][y]) break;
 					}
-					if (i != play_width) {//clear
-						clear[clear_num] = y;
-						clear_num++;
+					if (i == play_width) { //clear
+						clear[clear_num++] = y;
+						printf("\nclear y=%d\n", y);
+						//printf("i=%d y=%d clear_num=%d\n", i, y, clear_num);		
 					}
 				}
-				for (int i = 0; i <= clear_num; i++) {
-					for (int x = 0; x < play_width; x++) block[clear[clear_num]][x] = false;
-				}
-		}
-		
-		d_type = random(7) + 1;
-		d_dir = 0;
-		d_x = half_width_2;
-		d_y = 0;
-		tmp_x = d_x;
-		tmp_y = d_y;
-		tmp_dir = d_dir;
-	}else {
-		for (int i = 0; i < play_width; i++) {
-			for (int j = 0; j < play_height; j++) {
-				scr[i][j] = block[i][j];
-			}
-		}
-	}
-	
-		//Paint
-	Paint:
-	switch (d_type) {
-		case 1:
-				//长条 
-		switch (d_dir) {
-			case 0:
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] =
-			scr[d_x + 3][d_y + 1] = true;
-			break;
-			case 1:
-			scr[d_x + 2][d_y] =
-			scr[d_x + 2][d_y + 1] =
-			scr[d_x + 2][d_y + 2] =
-			scr[d_x + 2][d_y + 3] = true;
-			break;
-			case 2:
-			scr[d_x][d_y + 2] =
-			scr[d_x + 1][d_y + 2] =
-			scr[d_x + 2][d_y + 2] =
-			scr[d_x + 3][d_y + 2] = true;
-			break;
-			case 3:
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] =
-			scr[d_x + 1][d_y + 3] = true;
-			break;
-		}
-		break;
-		case 2:
-				//正方形 
-		scr[d_x][d_y] =
-		scr[d_x + 1][d_y] =
-		scr[d_x][d_y + 1] =
-		scr[d_x + 1][d_y + 1] = true;
-		break;
-		case 3:
-				//反L形 
-		switch (d_dir) {
-			case 0:
-			scr[d_x][d_y] =
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] = true;
-			break;
-			case 1:
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] =
-			scr[d_x + 2][d_y] = true;
-			break;
-			case 2:
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] =
-			scr[d_x + 2][d_y + 2] = true;
-			break;
-			case 3:
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] =
-			scr[d_x][d_y + 2] = true;
-			break;
-		}
-		break;
-		case 4:
-				//L形 
-		switch (d_dir) {
-			case 0:
-			scr[d_x + 2][d_y] =
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] = true;
-			break;
-			case 1:
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] =
-			scr[d_x + 2][d_y + 2] = true;
-			break; 
-			case 2:
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] =
-			scr[d_x][d_y + 2] = true;
-			break;
-			case 3:
-			scr[d_x][d_y] =
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] = true;
-			break;		
-		}
-		break;
-		case 5:
-				//T形 
-		switch (d_dir) {
-			case 0:
-			scr[d_x + 1][d_y] =
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] = true;
-			break;
-			case 1:
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] =
-			scr[d_x + 2][d_y + 1] = true;
-			break;
-			case 2:
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] =
-			scr[d_x + 1][d_y + 2] = true;
-			break;
-			case 3:
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] = true;
-			break;
-		}
-		break;
-		case 6:
-				//Z形 
-		switch (d_dir) {
-			case 0:
-			scr[d_x][d_y] =
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] = true;
-			break;
-			case 1:
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] =
-			scr[d_x + 2][d_y] =
-			scr[d_x + 2][d_y + 1] = true;
-			break;
-			case 2:
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] =
-			scr[d_x + 2][d_y + 2] = true;
-			break;
-			case 3:
-			scr[d_x][d_y + 1] =
-			scr[d_x][d_y + 2] =
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] = true;
-			break;
-		}
-		break;
-		case 7:
-				//反Z型 
-		switch (d_dir) {
-			case 0:
-			scr[d_x + 1][d_y] =
-			scr[d_x + 2][d_y] =
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] = true;
-			break;
-			case 1:
-			scr[d_x + 1][d_y] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] =
-			scr[d_x + 2][d_y + 2] = true;
-			break;
-			case 2:
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 2][d_y + 1] =
-			scr[d_x][d_y + 2] =
-			scr[d_x + 1][d_y + 2] = true;
-			break;
-			case 3:
-			scr[d_x][d_y] =
-			scr[d_x][d_y + 1] =
-			scr[d_x + 1][d_y + 1] =
-			scr[d_x + 1][d_y + 2] = true;
-			break;
-		}
-		break;
-	}
-	if (paint_back) goto PaintBack;
-	
-		//Disable
-	system("cls");
-	printf("%s%s┏", top_str.c_str(), left_str.c_str());
-	for (int i = 0; i < play_width; i++) printf("━");
-		printf("┓\n");
-	for (int i = 0; i < play_height; i++) {
-		printf("%s┃", left_str.c_str());
-		for (int j = 0; j < play_width; j++) printf(scr[j][i] ? "■" : "  ");
-			printf("┃\n");
-	}
-	printf("%s┗", left_str.c_str());
-	for (int i = 0; i < play_width; i++) printf("━");
-		printf("┛\n");
-	
-		//test
-	printf("\nBlock width: %d\nBlock height: %d\nBlock left: %d\nBlock type: %d\nBlock direction: %d", get_width(d_type, d_dir), get_height(d_type, d_dir), get_left(d_type, d_dir), d_type, d_dir);
-	
-	while (true) {
-		Sleep(50);
-		tick_count += tick;
-			//转向检测频率0.1s
-			//左转 
-		if((tick_count % 100 == 0) && KEY_DOWN('E')) {
-			if (d_dir == 3) tmp_dir = 0; else tmp_dir = d_dir + 1;
-			if ((d_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
-			if ((d_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
-			refresh = true;
-		}
-			//右转 
-		if((tick_count % 100 == 0) && KEY_DOWN('Q')) {
-			if (d_dir == 0) tmp_dir = 3; else tmp_dir = d_dir - 1;
-			if ((d_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
-			if ((d_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
-			refresh = true;
-		}
-			//左移 
-		if(KEY_DOWN('A')) {
-			if (d_x + get_left(d_type, d_dir) > 0) {
-				tmp_x = d_x - 1;
-				refresh = true;
-			}
-		}
-			//右移 
-		if(KEY_DOWN('D')) {
-			if (d_x + get_width(d_type, d_dir) < play_width) {
-				tmp_x = d_x + 1;
-				refresh = true;
-			}
-		}
-		if(KEY_DOWN('W')) {
-			tmp_y = d_y + 1;
-			down = true;
-			hard_down = true;
-			refresh = true;
-		}
-		if(KEY_DOWN('S')) {
-			tmp_y = d_y + 1;
-			down = true;
-			refresh = true;
-		}
-		
-		if (tick_count >= 1000) {
-			tick_count = 0;
-			tmp_y = d_y + 1;
-			down = true;
-			refresh = true;
-		}
-		
-			//检查变换是否合法 
-			//Refresh check
-		if (refresh) {
-			Refresh_check:
-			apply = true;
-			switch (d_type) {
-				case 1:
-						//长条 
-				switch (tmp_dir) {
-					case 0:
-					if (block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1]
-						|| block[tmp_x + 3][tmp_y + 1])
-						apply = false;
-					break;
-					case 1:
-					if (block[tmp_x + 2][tmp_y]
-						|| block[tmp_x + 2][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 2]
-						|| block[tmp_x + 2][tmp_y + 3])
-						apply = false;
-					break;
-					case 2:
-					if (block[tmp_x][tmp_y + 2]
-						|| block[tmp_x + 1][tmp_y + 2]
-						|| block[tmp_x + 2][tmp_y + 2]
-						|| block[tmp_x + 3][tmp_y + 2])
-						apply = false;
-					break;
-					case 3:
-					if (block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2]
-						|| block[tmp_x + 1][tmp_y + 3])
-						apply = false;
-					break;
-				}
-				break;
-				case 2:
-						//正方形 
-				if (block[tmp_x][tmp_y]
-					|| block[tmp_x + 1][tmp_y]
-					|| block[tmp_x][tmp_y + 1]
-					|| block[tmp_x + 1][tmp_y + 1])
-					apply = false;
-				break;
-				case 3:
-						//反L形 
-				switch (tmp_dir) {
-					case 0:
-					if (block[tmp_x][tmp_y]
-						|| block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1])
-						apply = false;
-					break;
-					case 1:
-					if (block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2]
-						|| block[tmp_x + 2][tmp_y])
-						apply = false;
-					break;
-					case 2:
-					if (block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 2])
-						apply = false;
-					break;
-					case 3:
-					if (block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2]
-						|| block[tmp_x][tmp_y + 2])
-						apply = false;
-					break;
-				}
-				break;
-				case 4:
-						//L形 
-				switch (tmp_dir) {
-					case 0:
-					if (block[tmp_x + 2][tmp_y]
-						|| block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1])
-						apply = false;
-					break;
-					case 1:
-					if (block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2]
-						|| block[tmp_x + 2][tmp_y + 2])
-						apply = false;
-					break;
-					case 2:
-					if (block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1]
-						|| block[tmp_x][tmp_y + 2])
-						apply = false;
-					break;
-					case 3:
-					if (block[tmp_x][tmp_y]
-						|| block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2])
-						apply = false;
-					break;
-				}
-				break;
-				case 5:
-						//T形 
-				switch (tmp_dir) {
-					case 0:
-					if (block[tmp_x + 1][tmp_y]
-						|| block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1])
-						apply = false;
-					break;
-					case 1:
-					if (block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2]
-						|| block[tmp_x + 2][tmp_y + 1])
-						apply = false;
-					break;
-					case 2:
-					if (block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2])
-						apply = false;
-					break;
-					case 3:
-					if (block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2])
-						apply = false;
-					break;
-				}
-				break;
-				case 6:
-						//Z形 
-				switch (tmp_dir) {
-					case 0:
-					if (block[tmp_x][tmp_y]
-						|| block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1])
-						apply = false;
-					break;
-					case 1:
-					if (block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2]
-						|| block[tmp_x + 2][tmp_y]
-						|| block[tmp_x + 2][tmp_y + 1])
-						apply = false;
-					break;
-					case 2:
-					if (block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2]
-						|| block[tmp_x + 2][tmp_y + 2])
-						apply = false;
-					break;
-					case 3:
-					if (block[tmp_x][tmp_y + 1]
-						|| block[tmp_x][tmp_y + 2]
-						|| block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1])
-						apply = false;
-					break;
-				}
-				break;
-				case 7:
-						//反Z型 
-				switch (tmp_dir) {
-					case 0:
-					if (block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 2][tmp_y]
-						|| block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1])
-						apply = false;
-					break;
-					case 1:
-					if (block[tmp_x + 1][tmp_y]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 2])
-						apply = false;
-					break;
-					case 2:
-					if (block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 2][tmp_y + 1]
-						|| block[tmp_x][tmp_y + 2]
-						|| block[tmp_x + 1][tmp_y + 2])
-						apply = false;
-					break;
-					case 3:
-					if (block[tmp_x][tmp_y]
-						|| block[tmp_x][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 1]
-						|| block[tmp_x + 1][tmp_y + 2])
-						apply = false;
-					break;
-				}
-				break;
-			}
-			if (d_y + get_height(d_type, d_dir) >= play_height) apply = false;
-			if (apply) {
-				d_dir = tmp_dir;
-				d_x = tmp_x;
-				d_y = tmp_y;
-					//硬降 
-				if (hard_down) {
-					tmp_y++;
-					goto Refresh_check;
-				}
-			}else {
-				if (down) {
-						//Paint again
+				if (clear_num != 0) {
+					for (int i = 0; i < clear_num; i++) { //每次平移循环
+						printf("move y=%d\n", clear[i]);
+						for (int y = clear[i]; y > 0; y--) { //每行平移扫描
+							//printf("block[x][%d]=block[x][%d]\n", y, y-1);
+							for (int x = 0; x < play_width; x++) { //每格平移扫描
+								block[x][y] = block[x][y - 1];
+								//printf("\nblock[%d][%d]=block[%d][%d]", x, y, x, y - 1);
+							}
+						}
+						/*for (int x = 0; x < play_width; x++) {
+							//printf("clear[%d]=%d\n", i, clear[clear_num]);
+							block[x][clear[i]] = false;
+							//printf("block[%d][%d]=%d\n", clear[i], x, block[clear[x]][x]);
+						}*/
+					}
+					//Sleep(600000);
+
+					//Disable
 					for (int i = 0; i < play_width; i++) {
 						for (int j = 0; j < play_height; j++) {
 							scr[i][j] = block[i][j];
 						}
 					}
-					paint_back = true;
-					goto Paint;
-					PaintBack:
-					paint_back = false;
-					if (hard_down) {
-						for (int i = 0; i < play_width; i++) {
-							for (int j = 0; j < play_height; j++) {
-								block[i][j] = scr[i][j];
-							}
-						}
+					system("cls");
+					printf("%s%s┏", top_str.c_str(), left_str.c_str());
+					for (int i = 0; i < play_width; i++) printf("━");
+					printf("┓\n");
+					for (int i = 0; i < play_height; i++) {
+						printf("%s┃", left_str.c_str());
+						for (int j = 0; j < play_width; j++) printf(scr[j][i] ? "■" : "  ");
+						printf("┃\n");
 					}
-					if ((d_y + 1 == tmp_y) && (d_x == tmp_x)) {
-						last_type = d_type;
-						d_type = 0;
-					}
-					down = false;
-					hard_down = false;
+					printf("%s┗", left_str.c_str());
+					for (int i = 0; i < play_width; i++) printf("━");
+					printf("┛\n");
+				}
+
+			}
+
+			d_type = random(7) + 1;
+			d_dir = 0;
+			d_x = half_width_2;
+			d_y = 0;
+			tmp_x = d_x;
+			tmp_y = d_y;
+			tmp_dir = d_dir;
+		}else {
+			for (int i = 0; i < play_width; i++) {
+				for (int j = 0; j < play_height; j++) {
+					scr[i][j] = block[i][j];
 				}
 			}
-			refresh = false;
+		}
+
+		//Paint
+		Paint:
+		switch (d_type) {
+			case 1:
+				//长条 
+			switch (d_dir) {
+				case 0:
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] =
+				scr[d_x + 3][d_y + 1] = true;
+				break;
+				case 1:
+				scr[d_x + 2][d_y] =
+				scr[d_x + 2][d_y + 1] =
+				scr[d_x + 2][d_y + 2] =
+				scr[d_x + 2][d_y + 3] = true;
+				break;
+				case 2:
+				scr[d_x][d_y + 2] =
+				scr[d_x + 1][d_y + 2] =
+				scr[d_x + 2][d_y + 2] =
+				scr[d_x + 3][d_y + 2] = true;
+				break;
+				case 3:
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] =
+				scr[d_x + 1][d_y + 3] = true;
+				break;
+			}
+			break;
+			case 2:
+				//正方形 
+			scr[d_x][d_y] =
+			scr[d_x + 1][d_y] =
+			scr[d_x][d_y + 1] =
+			scr[d_x + 1][d_y + 1] = true;
+			break;
+			case 3:
+				//反L形 
+			switch (d_dir) {
+				case 0:
+				scr[d_x][d_y] =
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] = true;
+				break;
+				case 1:
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] =
+				scr[d_x + 2][d_y] = true;
+				break;
+				case 2:
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] =
+				scr[d_x + 2][d_y + 2] = true;
+				break;
+				case 3:
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] =
+				scr[d_x][d_y + 2] = true;
+				break;
+			}
+			break;
+			case 4:
+				//L形 
+			switch (d_dir) {
+				case 0:
+				scr[d_x + 2][d_y] =
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] = true;
+				break;
+				case 1:
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] =
+				scr[d_x + 2][d_y + 2] = true;
+				break; 
+				case 2:
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] =
+				scr[d_x][d_y + 2] = true;
+				break;
+				case 3:
+				scr[d_x][d_y] =
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] = true;
+				break;		
+			}
+			break;
+			case 5:
+				//T形 
+			switch (d_dir) {
+				case 0:
+				scr[d_x + 1][d_y] =
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] = true;
+				break;
+				case 1:
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] =
+				scr[d_x + 2][d_y + 1] = true;
+				break;
+				case 2:
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] =
+				scr[d_x + 1][d_y + 2] = true;
+				break;
+				case 3:
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] = true;
+				break;
+			}
+			break;
+			case 6:
+				//Z形 
+			switch (d_dir) {
+				case 0:
+				scr[d_x][d_y] =
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] = true;
+				break;
+				case 1:
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] =
+				scr[d_x + 2][d_y] =
+				scr[d_x + 2][d_y + 1] = true;
+				break;
+				case 2:
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] =
+				scr[d_x + 2][d_y + 2] = true;
+				break;
+				case 3:
+				scr[d_x][d_y + 1] =
+				scr[d_x][d_y + 2] =
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] = true;
+				break;
+			}
+			break;
+			case 7:
+				//反Z型 
+			switch (d_dir) {
+				case 0:
+				scr[d_x + 1][d_y] =
+				scr[d_x + 2][d_y] =
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] = true;
+				break;
+				case 1:
+				scr[d_x + 1][d_y] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] =
+				scr[d_x + 2][d_y + 2] = true;
+				break;
+				case 2:
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 2][d_y + 1] =
+				scr[d_x][d_y + 2] =
+				scr[d_x + 1][d_y + 2] = true;
+				break;
+				case 3:
+				scr[d_x][d_y] =
+				scr[d_x][d_y + 1] =
+				scr[d_x + 1][d_y + 1] =
+				scr[d_x + 1][d_y + 2] = true;
+				break;
+			}
 			break;
 		}
+		if (paint_back) goto PaintBack;
+
+		//Disable
+		system("cls");
+		printf("%s%s┏", top_str.c_str(), left_str.c_str());
+		for (int i = 0; i < play_width; i++) printf("━");
+			printf("┓\n");
+		for (int i = 0; i < play_height; i++) {
+			printf("%s┃", left_str.c_str());
+			for (int j = 0; j < play_width; j++) printf(scr[j][i] ? "■" : "  ");
+				printf("┃\n");
+		}
+		printf("%s┗", left_str.c_str());
+		for (int i = 0; i < play_width; i++) printf("━");
+			printf("┛\n");
+
+		//test
+		printf("\nBlock width: %d\nBlock height: %d\nBlock left: %d\nBlock type: %d\nBlock direction: %d", get_width(d_type, d_dir), get_height(d_type, d_dir), get_left(d_type, d_dir), d_type, d_dir);
+
+		while (true) {
+			Sleep(50);
+			tick_count += tick;
+			//转向检测频率0.1s
+			//左转 
+			if((tick_count % 100 == 0) && KEY_DOWN('E')) {
+				if (d_dir == 3) tmp_dir = 0; else tmp_dir = d_dir + 1;
+				if ((d_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
+				if ((d_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
+				refresh = true;
+			}
+			//右转 
+			if((tick_count % 100 == 0) && KEY_DOWN('Q')) {
+				if (d_dir == 0) tmp_dir = 3; else tmp_dir = d_dir - 1;
+				if ((d_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
+				if ((d_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
+				refresh = true;
+			}
+			//左移 
+			if(KEY_DOWN('A')) {
+				if (d_x + get_left(d_type, d_dir) > 0) {
+					tmp_x = d_x - 1;
+					refresh = true;
+				}
+			}
+			//右移 
+			if(KEY_DOWN('D')) {
+				if (d_x + get_width(d_type, d_dir) < play_width) {
+					tmp_x = d_x + 1;
+					refresh = true;
+				}
+			}
+			if(KEY_DOWN('W')) {
+				tmp_y = d_y + 1;
+				down = true;
+				hard_down = true;
+				refresh = true;
+			}
+			if(KEY_DOWN('S')) {
+				tmp_y = d_y + 1;
+				down = true;
+				refresh = true;
+			}
+
+			if (tick_count >= 1000) {
+				tick_count = 0;
+				tmp_y = d_y + 1;
+				down = true;
+				refresh = true;
+			}
+
+			//检查变换是否合法 
+			//Refresh check
+			if (refresh) {
+				Refresh_check:
+				apply = true;
+				switch (d_type) {
+					case 1:
+						//长条 
+					switch (tmp_dir) {
+						case 0:
+						if (block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1]
+							|| block[tmp_x + 3][tmp_y + 1])
+							apply = false;
+						break;
+						case 1:
+						if (block[tmp_x + 2][tmp_y]
+							|| block[tmp_x + 2][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 2]
+							|| block[tmp_x + 2][tmp_y + 3])
+							apply = false;
+						break;
+						case 2:
+						if (block[tmp_x][tmp_y + 2]
+							|| block[tmp_x + 1][tmp_y + 2]
+							|| block[tmp_x + 2][tmp_y + 2]
+							|| block[tmp_x + 3][tmp_y + 2])
+							apply = false;
+						break;
+						case 3:
+						if (block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2]
+							|| block[tmp_x + 1][tmp_y + 3])
+							apply = false;
+						break;
+					}
+					break;
+					case 2:
+						//正方形 
+					if (block[tmp_x][tmp_y]
+						|| block[tmp_x + 1][tmp_y]
+						|| block[tmp_x][tmp_y + 1]
+						|| block[tmp_x + 1][tmp_y + 1])
+						apply = false;
+					break;
+					case 3:
+						//反L形 
+					switch (tmp_dir) {
+						case 0:
+						if (block[tmp_x][tmp_y]
+							|| block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1])
+							apply = false;
+						break;
+						case 1:
+						if (block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2]
+							|| block[tmp_x + 2][tmp_y])
+							apply = false;
+						break;
+						case 2:
+						if (block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 2])
+							apply = false;
+						break;
+						case 3:
+						if (block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2]
+							|| block[tmp_x][tmp_y + 2])
+							apply = false;
+						break;
+					}
+					break;
+					case 4:
+						//L形 
+					switch (tmp_dir) {
+						case 0:
+						if (block[tmp_x + 2][tmp_y]
+							|| block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1])
+							apply = false;
+						break;
+						case 1:
+						if (block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2]
+							|| block[tmp_x + 2][tmp_y + 2])
+							apply = false;
+						break;
+						case 2:
+						if (block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1]
+							|| block[tmp_x][tmp_y + 2])
+							apply = false;
+						break;
+						case 3:
+						if (block[tmp_x][tmp_y]
+							|| block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2])
+							apply = false;
+						break;
+					}
+					break;
+					case 5:
+						//T形 
+					switch (tmp_dir) {
+						case 0:
+						if (block[tmp_x + 1][tmp_y]
+							|| block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1])
+							apply = false;
+						break;
+						case 1:
+						if (block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2]
+							|| block[tmp_x + 2][tmp_y + 1])
+							apply = false;
+						break;
+						case 2:
+						if (block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2])
+							apply = false;
+						break;
+						case 3:
+						if (block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2])
+							apply = false;
+						break;
+					}
+					break;
+					case 6:
+						//Z形 
+					switch (tmp_dir) {
+						case 0:
+						if (block[tmp_x][tmp_y]
+							|| block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1])
+							apply = false;
+						break;
+						case 1:
+						if (block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2]
+							|| block[tmp_x + 2][tmp_y]
+							|| block[tmp_x + 2][tmp_y + 1])
+							apply = false;
+						break;
+						case 2:
+						if (block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2]
+							|| block[tmp_x + 2][tmp_y + 2])
+							apply = false;
+						break;
+						case 3:
+						if (block[tmp_x][tmp_y + 1]
+							|| block[tmp_x][tmp_y + 2]
+							|| block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1])
+							apply = false;
+						break;
+					}
+					break;
+					case 7:
+						//反Z型 
+					switch (tmp_dir) {
+						case 0:
+						if (block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 2][tmp_y]
+							|| block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1])
+							apply = false;
+						break;
+						case 1:
+						if (block[tmp_x + 1][tmp_y]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 2])
+							apply = false;
+						break;
+						case 2:
+						if (block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 2][tmp_y + 1]
+							|| block[tmp_x][tmp_y + 2]
+							|| block[tmp_x + 1][tmp_y + 2])
+							apply = false;
+						break;
+						case 3:
+						if (block[tmp_x][tmp_y]
+							|| block[tmp_x][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 1]
+							|| block[tmp_x + 1][tmp_y + 2])
+							apply = false;
+						break;
+					}
+					break;
+				}
+				if (d_y + get_height(d_type, d_dir) >= play_height) apply = false;
+				if (apply) {
+					d_dir = tmp_dir;
+					d_x = tmp_x;
+					d_y = tmp_y;
+					//硬降 
+					if (hard_down) {
+						tmp_y++;
+						goto Refresh_check;
+					}
+				}else {
+					if (down) {
+						//Paint again
+						for (int i = 0; i < play_width; i++) {
+							for (int j = 0; j < play_height; j++) {
+								scr[i][j] = block[i][j];
+							}
+						}
+						paint_back = true;
+						goto Paint;
+						PaintBack:
+						paint_back = false;
+						if (hard_down) {
+							for (int i = 0; i < play_width; i++) {
+								for (int j = 0; j < play_height; j++) {
+									block[i][j] = scr[i][j];
+								}
+							}
+						}
+						if ((d_y + 1 == tmp_y) && (d_x == tmp_x)) {
+							last_type = d_type;
+							d_type = 0;
+						}
+						down = false;
+						hard_down = false;
+					}
+				}
+				refresh = false;
+				break;
+			}
+		}
 	}
-}
 }
 
 int get_width(int d_type, int d_dir) {
