@@ -13,14 +13,14 @@ string refresh_top(int top);
 int get_width(int d_type, int d_dir);
 int get_height(int d_type, int d_dir);
 int get_left(int d_type, int d_dir);
-int one_player(string left_str, string top_str, int play_width, int play_height, int tick);
+int one_player();
 void paint(int d_type, int d_dir, int d_x, int d_y);
 void clearScreen();
 
 int selects = 0;
 string left_str, top_str;
 int play_width = 10, play_height = 20;
-int tick = 50;
+const int TICK = 20, DELAY = 50;
 int half_height, half_width_1, half_width_2;
 
 int main() {
@@ -99,7 +99,7 @@ int main() {
 			if (KEY_DOWN(VK_RETURN)) {
 				switch (selects) {
 					case 0:
-					tmp = one_player(left_str, top_str, play_width, play_height, tick);
+					tmp = one_player();
 					break;
 					case 1:
 						//TODO
@@ -165,7 +165,7 @@ string refresh_top(int top) {
 		return str;
 }
 
-int one_player(string left_str, string top_str, int play_width, int play_height, int tick) {
+int one_player() {
 	srand((unsigned int)(time(NULL)));
 	bool refresh = false, down = false, hard_down = false, apply = false, paint_back = false;
 	int tmp_dir, tmp_x, tmp_y;
@@ -174,6 +174,7 @@ int one_player(string left_str, string top_str, int play_width, int play_height,
 	bool scr[play_width][play_height];
 	bool block[play_width][play_height];
 	int last_type = 0;
+	bool pause = false;
 	
 	for(int i = 0; i < play_width; i++) {
 		for(int j = 0; j < play_height; j++) {
@@ -515,26 +516,32 @@ int one_player(string left_str, string top_str, int play_width, int play_height,
 		for (int i = 0; i < play_width; i++) printf("©¥");
 			printf("©¿\n");
 
-		//test
-		printf("\nBlock width: %d\nBlock height: %d\nBlock left: %d\nBlock type: %d\nBlock direction: %d", get_width(d_type, d_dir), get_height(d_type, d_dir), get_left(d_type, d_dir), d_type, d_dir);
+		//debug
+		//printf("\nBlock width: %d\nBlock height: %d\nBlock left: %d\nBlock type: %d\nBlock direction: %d", get_width(d_type, d_dir), get_height(d_type, d_dir), get_left(d_type, d_dir), d_type, d_dir);
 
 		while (true) {
-			Sleep(50);
-			tick_count += tick;
+			Sleep(TICK);
+			if (pause) {
+				pause = false;
+				Sleep(DELAY);
+			}
+			tick_count += TICK;
 			//×ªÏò¼ì²âÆµÂÊ0.1s
 			//×ó×ª 
-			if((tick_count % 100 == 0) && KEY_DOWN('E')) {
+			if(KEY_DOWN('E')) {
 				if (d_dir == 3) tmp_dir = 0; else tmp_dir = d_dir + 1;
 				if ((d_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
 				if ((d_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
 				refresh = true;
+				pause = true;
 			}
 			//ÓÒ×ª 
-			if((tick_count % 100 == 0) && KEY_DOWN('Q')) {
+			if(KEY_DOWN('Q')) {
 				if (d_dir == 0) tmp_dir = 3; else tmp_dir = d_dir - 1;
 				if ((d_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
 				if ((d_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
 				refresh = true;
+				pause = true;
 			}
 			//×óÒÆ 
 			if(KEY_DOWN('A')) {
@@ -542,6 +549,7 @@ int one_player(string left_str, string top_str, int play_width, int play_height,
 					tmp_x = d_x - 1;
 					refresh = true;
 				}
+				pause = true;
 			}
 			//ÓÒÒÆ 
 			if(KEY_DOWN('D')) {
@@ -549,17 +557,20 @@ int one_player(string left_str, string top_str, int play_width, int play_height,
 					tmp_x = d_x + 1;
 					refresh = true;
 				}
+				pause = true;
 			}
 			if(KEY_DOWN('W')) {
 				tmp_y = d_y + 1;
 				down = true;
 				hard_down = true;
 				refresh = true;
+				pause = true;
 			}
 			if(KEY_DOWN('S')) {
 				tmp_y = d_y + 1;
 				down = true;
 				refresh = true;
+				pause = true;
 			}
 
 			if (tick_count >= 1000) {
