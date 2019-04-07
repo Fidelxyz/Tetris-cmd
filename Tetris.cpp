@@ -20,12 +20,11 @@ void clearScreen();
 int selects = 0;
 string left_str, top_str;
 int play_width = 10, play_height = 20;
-const int TICK = 20, DELAY = 50;
+const int TICK = 10, DELAY = 70;
 int half_height, half_width_1, half_width_2;
 
 int main() {
 	int left = 10, top = 3;
-	int tmp = 0;
 	system("mode con cols=100 lines=32");
 	//lines=32
 	system("color F");
@@ -49,7 +48,7 @@ int main() {
 	top_str = refresh_top(top);
 	while (true) {
 		clearScreen();
-		cout << top_str; 
+		cout << top_str;
 		if (selects == 0) {
 			cout << left_str << "┏━━━━┓\n"
 			<< left_str << "┃单人模式┃\n"
@@ -60,7 +59,7 @@ int main() {
 		cout << "\n";
 		if (selects == 1) {
 			cout << left_str << "┏━━━━┓\n"
-			<< left_str << "┃双人对战┃\n"
+			<< left_str << "┃双人对战┃  该功能尚未实现\n"
 			<< left_str << "┗━━━━┛\n";
 		}else {
 			cout << "\n" << left_str << "  双人对战\n\n";
@@ -68,7 +67,7 @@ int main() {
 		cout << "\n";
 		if (selects == 2) {
 			cout << left_str << "┏━━━━┓\n"
-			<< left_str << "┃  设置  ┃\n"
+			<< left_str << "┃  设置  ┃  该功能尚未实现\n"
 			<< left_str << "┗━━━━┛\n";
 		}else {
 			cout << "\n" << left_str << "    设置\n\n";
@@ -77,6 +76,7 @@ int main() {
 		if (selects == 3) {
 			cout << left_str << "┏━━━━┓\n"
 			<< left_str << "┃  退出  ┃\n"
+
 			<< left_str << "┗━━━━┛\n";
 		}else {
 			cout << "\n" << left_str << "    退出\n\n";
@@ -99,7 +99,7 @@ int main() {
 			if (KEY_DOWN(VK_RETURN)) {
 				switch (selects) {
 					case 0:
-					tmp = one_player();
+						one_player();
 					break;
 					case 1:
 						//TODO
@@ -107,17 +107,11 @@ int main() {
 					case 2:
 						//TODO
 					left_str = refresh_left(left);
-					top_str = refresh_top(left);
+					top_str = refresh_top(top);
 					break;
 					case 3:
 					return 0;
 				}
-			}
-			switch (tmp) {
-				case 1:
-				
-				tmp = 0;
-				break;
 			}
 		}
 	}
@@ -492,48 +486,53 @@ int one_player() {
 				Sleep(DELAY);
 			}
 			tick_count += TICK;
-			//转向检测频率0.1s
-			//左转 
+			//键盘检测频率
+
+			tmp_dir = d_dir;
+			tmp_x = d_x;
+			tmp_y = d_y;
+
+			//左转
 			if(KEY_DOWN('E')) {
-				if (d_dir == 3) tmp_dir = 0; else tmp_dir = d_dir + 1;
-				if ((d_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
-				if ((d_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
+				if (tmp_dir == 3) tmp_dir = 0; else tmp_dir += 1;
+				if ((tmp_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
+				if ((tmp_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
 				refresh = true;
 				pause = true;
 			}
 			//右转 
 			if(KEY_DOWN('Q')) {
-				if (d_dir == 0) tmp_dir = 3; else tmp_dir = d_dir - 1;
-				if ((d_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
-				if ((d_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
+				if (tmp_dir == 0) tmp_dir = 3; else tmp_dir -= 1;
+				if ((tmp_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
+				if ((tmp_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
 				refresh = true;
 				pause = true;
 			}
 			//左移 
 			if(KEY_DOWN('A')) {
-				if (d_x + get_left(d_type, d_dir) > 0) {
-					tmp_x = d_x - 1;
+				if (tmp_x + get_left(d_type, tmp_dir) > 0) {
+					tmp_x -= 1;
 					refresh = true;
 				}
 				pause = true;
 			}
 			//右移 
 			if(KEY_DOWN('D')) {
-				if (d_x + get_width(d_type, d_dir) < play_width) {
-					tmp_x = d_x + 1;
+				if (tmp_x + get_width(d_type, tmp_dir) < play_width) {
+					tmp_x += 1;
 					refresh = true;
 				}
 				pause = true;
 			}
 			if(KEY_DOWN('W')) {
-				tmp_y = d_y + 1;
+				tmp_y += 1;
 				down = true;
 				hard_down = true;
 				refresh = true;
 				pause = true;
 			}
 			if(KEY_DOWN('S')) {
-				tmp_y = d_y + 1;
+				tmp_y += 1;
 				down = true;
 				refresh = true;
 				pause = true;
@@ -541,7 +540,7 @@ int one_player() {
 
 			if (tick_count >= 1000) {
 				tick_count = 0;
-				tmp_y = d_y + 1;
+				tmp_y += 1;
 				down = true;
 				refresh = true;
 			}
