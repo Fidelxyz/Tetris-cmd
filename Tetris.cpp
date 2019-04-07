@@ -115,37 +115,7 @@ int main() {
 			}
 			switch (tmp) {
 				case 1:
-				for (int count = 3; count > 0; count--) {
-					clearScreen();
-					printf("%s%s┏", top_str.c_str(), left_str.c_str());
-					for (int i = 0; i < play_width; i++) printf("━");
-					printf("┓\n");
-					for (int i = 0; i < half_height; i++) {
-						printf("%s┃", left_str.c_str());
-						for (int j = 0; j < play_width; j++) printf("  ");
-						printf("┃\n");
-					}
-					printf("%s┃", left_str.c_str());
-					for (int i = 0; i < half_width_1; i++) printf("  ");
-					printf("   Game over  ");
-					for (int i = 0; i < play_width - half_width_1 - 7; i++) printf("  ");
-					printf("┃\n%s┃", left_str.c_str());
-					for (int i = 0; i < play_width; i++) printf("  ");
-					printf("┃\n%s┃", left_str.c_str());
-					for (int i = 0; i < half_width_2; i++) printf("  ");
-					printf(" %d", count);
-					for (int i = 0; i < play_width - half_width_2 - 1; i++) printf("  ");
-					printf("┃\n");
-					for (int i = 0; i < play_height - half_height - 3; i++) {
-						printf("%s┃", left_str.c_str());
-						for (int j = 0; j < play_width; j++) printf("  ");
-						printf("┃\n");
-					}
-					printf("%s┗", left_str.c_str());
-					for (int i = 0; i < play_width; i++) printf("━");
-					printf("┛\n");
-					Sleep(1000);
-				}
+				
 				tmp = 0;
 				break;
 			}
@@ -175,6 +145,7 @@ int one_player() {
 	bool block[play_width][play_height];
 	int last_type = 0;
 	bool pause = false;
+	int score = 0;
 	
 	for(int i = 0; i < play_width; i++) {
 		for(int j = 0; j < play_height; j++) {
@@ -190,7 +161,7 @@ int one_player() {
 	//Count down
 	/*for (int count = 3; count > 0; count--) {
 		clearScreen();
-		printf("%s%s┏", top_str.c_str(), left_str.c_str());
+		printf("%s%sScore: %d\n%s┏", top_str.c_str(), left_str.c_str(), score, left_str.c_str());
 		for (int i = 0; i < play_width; i++) printf("━");
 		printf("┓\n");
 		for (int i = 0; i < half_height; i++) {
@@ -240,7 +211,7 @@ int one_player() {
 					}
 				}
 				if (game_over) {
-					return 1;
+					goto GameOver;
 				}
 
 				//消除行检测 Clear check
@@ -264,19 +235,14 @@ int one_player() {
 					for (int i = 0; i < clear_num; i++) { //每次平移循环
 						printf("move y=%d\n", clear[i]);
 						for (int y = clear[i]; y > 0; y--) { //每行平移扫描
-							//printf("block[x][%d]=block[x][%d]\n", y, y-1);
 							for (int x = 0; x < play_width; x++) { //每格平移扫描
 								block[x][y] = block[x][y - 1];
-								//printf("\nblock[%d][%d]=block[%d][%d]", x, y, x, y - 1);
 							}
 						}
-						/*for (int x = 0; x < play_width; x++) {
-							//printf("clear[%d]=%d\n", i, clear[clear_num]);
-							block[x][clear[i]] = false;
-							//printf("block[%d][%d]=%d\n", clear[i], x, block[clear[x]][x]);
-						}*/
 					}
-					//Sleep(600000);
+
+					//计算分数 Score
+					for (int i = 1; i <= clear_num; i++) score += i;
 
 					//Disable
 					for (int i = 0; i < play_width; i++) {
@@ -285,7 +251,7 @@ int one_player() {
 						}
 					}
 					clearScreen();
-					printf("%s%s┏", top_str.c_str(), left_str.c_str());
+					printf("%s%sScore: %d\n%s┏", top_str.c_str(), left_str.c_str(), score, left_str.c_str());
 					for (int i = 0; i < play_width; i++) printf("━");
 					printf("┓\n");
 					for (int i = 0; i < play_height; i++) {
@@ -504,7 +470,7 @@ int one_player() {
 
 		//Disable
 		clearScreen();
-		printf("%s%s┏", top_str.c_str(), left_str.c_str());
+		printf("%s%sScore: %d\n%s┏", top_str.c_str(), left_str.c_str(), score, left_str.c_str());
 		for (int i = 0; i < play_width; i++) printf("━");
 			printf("┓\n");
 		for (int i = 0; i < play_height; i++) {
@@ -835,6 +801,40 @@ int one_player() {
 			}
 		}
 	}
+
+	GameOver:
+	for (int count = 3; count > 0; count--) {
+		clearScreen();
+		printf("%s%sScore: %d\n%s┏", top_str.c_str(), left_str.c_str(), score, left_str.c_str());
+		for (int i = 0; i < play_width; i++) printf("━");
+		printf("┓\n");
+		for (int i = 0; i < half_height; i++) {
+			printf("%s┃", left_str.c_str());
+			for (int j = 0; j < play_width; j++) printf("  ");
+			printf("┃\n");
+		}
+		printf("%s┃", left_str.c_str());
+		for (int i = 0; i < half_width_1; i++) printf("  ");
+		printf("   Game over  ");
+		for (int i = 0; i < play_width - half_width_1 - 7; i++) printf("  ");
+		printf("┃\n%s┃", left_str.c_str());
+		for (int i = 0; i < play_width; i++) printf("  ");
+		printf("┃\n%s┃", left_str.c_str());
+		for (int i = 0; i < half_width_2; i++) printf("  ");
+		printf(" %d", count);
+		for (int i = 0; i < play_width - half_width_2 - 1; i++) printf("  ");
+		printf("┃\n");
+		for (int i = 0; i < play_height - half_height - 3; i++) {
+			printf("%s┃", left_str.c_str());
+			for (int j = 0; j < play_width; j++) printf("  ");
+			printf("┃\n");
+		}
+		printf("%s┗", left_str.c_str());
+		for (int i = 0; i < play_width; i++) printf("━");
+		printf("┛\n");
+		Sleep(1000);
+	}
+	return 1;
 }
 
 int get_width(int d_type, int d_dir) {
