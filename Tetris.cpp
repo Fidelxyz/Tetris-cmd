@@ -76,7 +76,6 @@ int main() {
 		if (selects == 3) {
 			cout << left_str << "┏━━━━┓\n"
 			<< left_str << "┃  退出  ┃\n"
-
 			<< left_str << "┗━━━━┛\n";
 		}else {
 			cout << "\n" << left_str << "    退出\n\n";
@@ -140,6 +139,7 @@ int one_player() {
 	int last_type = 0;
 	bool pause = false;
 	int score = 0;
+	bool force_refresh = false;
 	
 	for(int i = 0; i < play_width; i++) {
 		for(int j = 0; j < play_height; j++) {
@@ -493,7 +493,7 @@ int one_player() {
 			tmp_y = d_y;
 
 			//左转
-			if(KEY_DOWN('E')) {
+			if (KEY_DOWN('E')) {
 				if (tmp_dir == 3) tmp_dir = 0; else tmp_dir += 1;
 				if ((tmp_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
 				if ((tmp_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
@@ -501,7 +501,7 @@ int one_player() {
 				pause = true;
 			}
 			//右转 
-			if(KEY_DOWN('Q')) {
+			if (KEY_DOWN('Q')) {
 				if (tmp_dir == 0) tmp_dir = 3; else tmp_dir -= 1;
 				if ((tmp_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
 				if ((tmp_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
@@ -509,7 +509,7 @@ int one_player() {
 				pause = true;
 			}
 			//左移 
-			if(KEY_DOWN('A')) {
+			if (KEY_DOWN('A')) {
 				if (tmp_x + get_left(d_type, tmp_dir) > 0) {
 					tmp_x -= 1;
 					refresh = true;
@@ -517,21 +517,21 @@ int one_player() {
 				pause = true;
 			}
 			//右移 
-			if(KEY_DOWN('D')) {
+			if (KEY_DOWN('D')) {
 				if (tmp_x + get_width(d_type, tmp_dir) < play_width) {
 					tmp_x += 1;
 					refresh = true;
 				}
 				pause = true;
 			}
-			if(KEY_DOWN('W')) {
+			if (KEY_DOWN('W')) {
 				tmp_y += 1;
 				down = true;
 				hard_down = true;
 				refresh = true;
 				pause = true;
 			}
-			if(KEY_DOWN('S')) {
+			if (KEY_DOWN('S')) {
 				tmp_y += 1;
 				down = true;
 				refresh = true;
@@ -543,6 +543,11 @@ int one_player() {
 				tmp_y += 1;
 				down = true;
 				refresh = true;
+			}
+
+			//强制刷新 Force refresh
+			if (KEY_DOWN(VK_F8)) {
+				force_refresh = true;
 			}
 
 			//检查变换是否合法 
@@ -759,6 +764,10 @@ int one_player() {
 					break;
 				}
 				if (d_y + get_height(d_type, d_dir) >= play_height) apply = false;
+				if (force_refresh) { //强制刷新
+					apply = false;
+					force_refresh = false;
+				}
 				if (apply) {
 					d_dir = tmp_dir;
 					d_x = tmp_x;
