@@ -876,7 +876,7 @@ int get_height(int d_type, int d_dir) {
 			return 2;
 			case 2:
 			return 3;
-				//case 1 or 3:
+			//case 1 or 3:
 			default:
 			return 4;
 		}
@@ -896,7 +896,7 @@ int get_left(int d_type, int d_dir) {
 			return 2;
 			case 3:
 			return 1;
-				//case 0 or 2:
+			//case 0 or 2:
 			default:
 			return 0;
 		}
@@ -909,6 +909,7 @@ int get_left(int d_type, int d_dir) {
 }
 
 //快速清屏 https://blog.csdn.net/icy_ybk/article/details/79285245 
+//但貌似也没快多少
 void clearScreen()
 {
     HANDLE hStdOut;
