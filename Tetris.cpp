@@ -22,9 +22,11 @@ void clearScreen();
 
 int selects = 0;
 string left_str, top_str;
+int half_height, half_width_1, half_width_2;
 int play_width = 10, play_height = 20;
 const int TICK = 10, DELAY = 70, SPEED = 500; //单位ms，数值越小时间越短（速度越快）
-int half_height, half_width_1, half_width_2;
+const bool COUNT_DOWN = true; //开始前倒计时 默认true，调试用
+
 
 int main() {
 	int left = 10, top = 3;
@@ -156,7 +158,8 @@ int one_player() {
 	half_width_2 = (play_width - 1) / 2;
 	
 	//Count down
-	/*for (int count = 3; count > 0; count--) {
+	if (COUNT_DOWN) {
+		for (int count = 3; count > 0; count--) {
 		clearScreen();
 		printf("%s%sScore: %d\n%s┏", top_str.c_str(), left_str.c_str(), score, left_str.c_str());
 		for (int i = 0; i < play_width; i++) printf("━");
@@ -186,7 +189,8 @@ int one_player() {
 		for (int i = 0; i < play_width; i++) printf("━");
 		printf("┛\n");
 		Sleep(1000);
-	}*/
+	}
+	}
 	
 	//Game Start Refresh
 	while (true) {
