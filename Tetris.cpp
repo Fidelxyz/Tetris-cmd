@@ -6,6 +6,9 @@
 #include <time.h>
 #define KEY_DOWN(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 1:0)
 #define random(x) (rand()%x)
+
+#pragma GCC optimize(3)
+
 using namespace std;
 
 string refresh_left(int left);
@@ -20,7 +23,7 @@ void clearScreen();
 int selects = 0;
 string left_str, top_str;
 int play_width = 10, play_height = 20;
-const int TICK = 10, DELAY = 70;
+const int TICK = 10, DELAY = 70, SPEED = 500; //单位ms，数值越小时间越短（速度越快）
 int half_height, half_width_1, half_width_2;
 
 int main() {
@@ -227,7 +230,6 @@ int one_player() {
 				}
 				if (clear_num != 0) {
 					for (int i = 0; i < clear_num; i++) { //每次平移循环
-						printf("move y=%d\n", clear[i]);
 						for (int y = clear[i]; y > 0; y--) { //每行平移扫描
 							for (int x = 0; x < play_width; x++) { //每格平移扫描
 								block[x][y] = block[x][y - 1];
@@ -483,6 +485,7 @@ int one_player() {
 			Sleep(TICK);
 			if (pause) {
 				pause = false;
+				tick_count += DELAY;
 				Sleep(DELAY);
 			}
 			tick_count += TICK;
@@ -538,7 +541,7 @@ int one_player() {
 				pause = true;
 			}
 
-			if (tick_count >= 1000) {
+			if (tick_count >= SPEED) {
 				tick_count = 0;
 				tmp_y += 1;
 				down = true;
