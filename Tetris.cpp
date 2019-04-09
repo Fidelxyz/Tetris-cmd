@@ -19,6 +19,7 @@ int get_left(int d_type, int d_dir);
 int one_player();
 void paint(int d_type, int d_dir, int d_x, int d_y);
 void clearScreen();
+void quickCls();
 
 int selects = 0;
 string left_str, top_str;
@@ -158,9 +159,10 @@ int one_player() {
 	half_width_2 = (play_width - 1) / 2;
 	
 	//Count down
+	clearScreen();
 	if (COUNT_DOWN) {
 		for (int count = 3; count > 0; count--) {
-		clearScreen();
+		quickCls();
 		printf("%s%sScore: %d\n%s┏", top_str.c_str(), left_str.c_str(), score, left_str.c_str());
 		for (int i = 0; i < play_width; i++) printf("━");
 		printf("┓\n");
@@ -228,7 +230,7 @@ int one_player() {
 					}
 					if (i == play_width) { //clear
 						clear[clear_num++] = y;
-						printf("\nclear y=%d\n", y);
+						//printf("\nclear y=%d\n", y);
 						//printf("i=%d y=%d clear_num=%d\n", i, y, clear_num);		
 					}
 				}
@@ -250,7 +252,7 @@ int one_player() {
 							scr[i][j] = block[i][j];
 						}
 					}
-					clearScreen();
+					quickCls();
 					printf("%s%sScore: %d\n%s┏", top_str.c_str(), left_str.c_str(), score, left_str.c_str());
 					for (int i = 0; i < play_width; i++) printf("━");
 					printf("┓\n");
@@ -469,7 +471,7 @@ int one_player() {
 		if (paint_back) goto PaintBack;
 
 		//Disable
-		clearScreen();
+		quickCls();
 		printf("%s%sScore: %d\n%s┏", top_str.c_str(), left_str.c_str(), score, left_str.c_str());
 		for (int i = 0; i < play_width; i++) printf("━");
 			printf("┓\n");
@@ -819,7 +821,7 @@ int one_player() {
 
 	GameOver:
 	for (int count = 3; count > 0; count--) {
-		clearScreen();
+		quickCls();
 		printf("%s%sScore: %d\n%s┏", top_str.c_str(), left_str.c_str(), score, left_str.c_str());
 		for (int i = 0; i < play_width; i++) printf("━");
 		printf("┓\n");
@@ -937,4 +939,15 @@ void clearScreen()
     ScrollConsoleScreenBufferW(hStdOut, &scroll, NULL, newCursorPointer, &ciFill);
     newCursorPointer.Y = 0;
     SetConsoleCursorPosition(hStdOut, newCursorPointer);
+}
+
+//以移动光标代替清屏，解决闪屏问题
+void quickCls() {
+	HANDLE hout;
+	COORD coord;
+	coord.X=0;
+	coord.Y=0;
+	hout=GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleCursorPosition(hout,coord);
+
 }
