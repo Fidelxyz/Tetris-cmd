@@ -25,7 +25,7 @@ int selects = 0;
 string left_str, top_str;
 int half_height, half_width_1, half_width_2;
 int play_width = 10, play_height = 20;
-const int TICK = 10, DELAY = 70, SPEED = 500; //单位ms，数值越小时间越短（速度越快）
+const int TICK = 10, DELAY = 50, SPEED = 500; //单位ms，数值越小时间越短（速度越快）
 const bool COUNT_DOWN = true; //开始前倒计时 默认true，调试用
 
 
@@ -101,7 +101,13 @@ int main() {
 				break;
 			}
 			//Enter
-			if (KEY_DOWN(VK_RETURN)) {
+			if (KEY_DOWN(VK_RETURN)) {HANDLE hout;
+ COORD coord;
+ coord.X=10;
+ coord.Y=10;
+ hout=GetStdHandle(STD_OUTPUT_HANDLE);
+ SetConsoleCursorPosition(hout,coord);
+
 				switch (selects) {
 					case 0:
 						one_player();
@@ -502,7 +508,7 @@ int one_player() {
 			tmp_y = d_y;
 
 			//左转
-			if (KEY_DOWN('E')) {
+			if (KEY_DOWN('D')) {
 				if (tmp_dir == 3) tmp_dir = 0; else tmp_dir += 1;
 				if ((tmp_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
 				if ((tmp_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
@@ -510,7 +516,7 @@ int one_player() {
 				pause = true;
 			}
 			//右转 
-			if (KEY_DOWN('Q')) {
+			if (KEY_DOWN('A')) {
 				if (tmp_dir == 0) tmp_dir = 3; else tmp_dir -= 1;
 				if ((tmp_x + get_width(d_type, d_dir) == play_width) && (get_width(d_type, tmp_dir) > get_width(d_type, d_dir))) tmp_x -= get_width(d_type, tmp_dir) - get_width(d_type, d_dir);
 				if ((tmp_x + get_left(d_type, d_dir) == 0) && (get_left(d_type, tmp_dir) < get_left(d_type, d_dir))) tmp_x += get_left(d_type, d_dir) - get_left(d_type, tmp_dir);
@@ -518,7 +524,7 @@ int one_player() {
 				pause = true;
 			}
 			//左移 
-			if (KEY_DOWN('A')) {
+			if (KEY_DOWN(VK_LEFT)) {
 				if (tmp_x + get_left(d_type, tmp_dir) > 0) {
 					tmp_x -= 1;
 					refresh = true;
@@ -526,21 +532,21 @@ int one_player() {
 				pause = true;
 			}
 			//右移 
-			if (KEY_DOWN('D')) {
+			if (KEY_DOWN(VK_RIGHT)) {
 				if (tmp_x + get_width(d_type, tmp_dir) < play_width) {
 					tmp_x += 1;
 					refresh = true;
 				}
 				pause = true;
 			}
-			if (KEY_DOWN('W')) {
+			if (KEY_DOWN('S')) {
 				tmp_y += 1;
 				down = true;
 				hard_down = true;
 				refresh = true;
 				pause = true;
 			}
-			if (KEY_DOWN('S')) {
+			if (KEY_DOWN(VK_DOWN)) {
 				tmp_y += 1;
 				down = true;
 				refresh = true;
