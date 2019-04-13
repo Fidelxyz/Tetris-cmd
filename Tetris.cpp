@@ -47,7 +47,7 @@ int main() {
 	mode &= ~ENABLE_MOUSE_INPUT;
 	mode &= ~ENABLE_WINDOW_INPUT;
 	mode &= ~ENABLE_PROCESSED_INPUT;
-	mode &= ~ENABLE_LINE_INPUT;
+	//mode &= ~ENABLE_LINE_INPUT;
 	SetConsoleMode(hStdin, mode);
 
 	left_str = refresh_left(left);
