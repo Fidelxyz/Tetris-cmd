@@ -145,13 +145,7 @@ int main() {
 				break;
 			}
 			//Enter
-			if (KEY_DOWN(VK_RETURN)) {HANDLE hout;
- COORD coord;
- coord.X=10;
- coord.Y=10;
- hout=GetStdHandle(STD_OUTPUT_HANDLE);
- SetConsoleCursorPosition(hout,coord);
-
+			if (KEY_DOWN(VK_RETURN)) {
 				switch (selects) {
 					case 0:
 						one_player();
