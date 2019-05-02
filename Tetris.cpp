@@ -20,6 +20,7 @@ int one_player();
 void paint(int d_type, int d_dir, int d_x, int d_y);
 void clearScreen();
 void quickCls();
+void hide();
 
 int selects = 0;
 string left_str, top_str;
@@ -45,7 +46,7 @@ const int BLOCK_DATA[7][4][4][2] = {
 		{{0,0},{0,1},{1,1},{2,1}},
 		{{1,0},{1,1},{1,2},{2,0}},
 		{{0,1},{1,1},{2,1},{2,2}},
-		{{1,0},{1,1},{1,2},{0,0}}
+		{{1,0},{1,1},{1,2},{0,2}}
 	},
 	{ // 4 L形
 		{{2,0},{0,1},{1,1},{2,1}},
@@ -93,6 +94,7 @@ int main() {
 	mode &= ~ENABLE_PROCESSED_INPUT;
 	//mode &= ~ENABLE_LINE_INPUT;
 	SetConsoleMode(hStdin, mode);
+	hide();
 
 	left_str = refresh_left(left);
 	top_str = refresh_top(top);
@@ -269,7 +271,7 @@ int one_player() {
 				int clear_num = 0;
 				for (/*int y = d_y; y <= check_max_y; y++*/int y = 0; y < play_height; y++) {
 					int i;
-					for (i = 1; i < play_width; i++) {
+					for (i = 0; i < play_width; i++) {
 						if (!block[i][y]) break;
 					}
 					if (i == play_width) { //clear
@@ -608,5 +610,13 @@ void quickCls() {
 	coord.Y=0;
 	hout=GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleCursorPosition(hout,coord);
+}
 
+//隐藏光标 
+void hide() {
+	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_CURSOR_INFO CursorInfo;
+	GetConsoleCursorInfo(handle, &CursorInfo);//获取控制台光标信息
+	CursorInfo.bVisible = false; //隐藏控制台光标
+	SetConsoleCursorInfo(handle, &CursorInfo);//设置控制台光标状态
 }
