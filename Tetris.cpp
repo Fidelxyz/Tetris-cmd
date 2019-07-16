@@ -27,8 +27,10 @@ string left_str, top_str;
 int half_height, half_width_1, half_width_2;
 int play_width = 10, play_height = 20;
 const int TICK = 5, DELAY = 60, SPEED = 500; //单位ms，数值越小时间越短（速度越快）
+//TICK:输入检测时钟速度 DELAY输入后延迟 SPEED方块下落一格时间
 const bool COUNT_DOWN = true; //开始前倒计时 默认true，调试用
 //方块信息查表
+//BLOCK_DATA[方块编号][方向][每格编号][坐标X/Y]
 const int BLOCK_DATA[7][4][4][2] = {
 	{ // 1 长条
 		{{0,1},{1,1},{2,1},{3,1}},
@@ -81,7 +83,7 @@ int main() {
 	system("color F");
 	system("chcp 936");
 	//UTF-8: 65001
-	//GBK: 936[d_x + BLOCK_DATA[d_type - 1][d_dir][0]]
+	//GBK: 936
 
 	//禁用快速编辑模式
 	HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
